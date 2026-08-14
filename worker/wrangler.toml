@@ -3,10 +3,10 @@ main = "subscribe.js"
 compatibility_date = "2026-08-14"
 
 # Same origin as the site, so the page makes no cross-host request.
-# Requires the jadhrapp.com record to be proxied (orange cloud) — do this only
+# Requires the jadhrdaily.com record to be proxied (orange cloud) — do this only
 # after GitHub has issued the Pages certificate, or the challenge fails.
 routes = [
-  { pattern = "jadhrapp.com/api/*", zone_name = "jadhrapp.com" }
+  { pattern = "jadhrdaily.com/api/*", zone_name = "jadhrdaily.com" }
 ]
 
 # Rate-limit keys only: hashed IPs with a 60-second TTL, nothing durable.

@@ -1,9 +1,9 @@
 /**
- * jadhrapp.com/api/subscribe — the waitlist endpoint.
+ * jadhrdaily.com/api/subscribe — the waitlist endpoint.
  *
  * The page claims it makes no third-party requests, and that claim should stay
  * literally true even at the one moment the browser does talk to a server. So
- * the form posts to this Worker on jadhrapp.com's own origin, and the Worker —
+ * the form posts to this Worker on jadhrdaily.com's own origin, and the Worker —
  * not the visitor's browser — is what talks to the email provider. The API key
  * stays server-side, no third-party script runs on the page, and no third party
  * ever sees the visitor's IP.
@@ -16,7 +16,7 @@
  * only safe AFTER GitHub has issued the Pages certificate. See the README.
  */
 
-const ALLOW = 'https://jadhrapp.com';
+const ALLOW = 'https://jadhrdaily.com';
 const VALID = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 export default {
@@ -61,7 +61,7 @@ export default {
       body: JSON.stringify({
         email_address: email,
         tags: ['jadhr-waitlist'],
-        referrer_url: 'https://jadhrapp.com/',
+        referrer_url: 'https://jadhrdaily.com/',
       }),
     });
 

@@ -1,5 +1,5 @@
 /* ============================================================================
-   JADHR — jadhrapp.com
+   JADHR — jadhrdaily.com
    Reveal-on-scroll, day one of the game, and the waitlist form. No trackers
    and no third-party requests; the only network call this page can make is the
    one the visitor starts by submitting their own email address.
@@ -175,7 +175,7 @@
         var body = [
           'Assalamu alaikum,', '',
           'Please add me to the Jadhr list — a root a week, and a note when the app opens.',
-          '', 'Email: ' + email, '', '— sent from jadhrapp.com'
+          '', 'Email: ' + email, '', '— sent from jadhrdaily.com'
         ].join('\r\n');
         window.location.href = 'mailto:' + form.getAttribute('data-to') +
           '?subject=' + encodeURIComponent(form.getAttribute('data-subject') || 'Jadhr') +
@@ -192,7 +192,7 @@
       fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email, source: 'jadhrapp.com' })
+        body: JSON.stringify({ email: email, source: 'jadhrdaily.com' })
       }).then(function (res) {
         if (!res.ok && res.status !== 409) throw new Error(res.status);
         done();

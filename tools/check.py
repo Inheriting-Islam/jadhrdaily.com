@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Structural audit for jadhrapp.com. Standard library only, no browser —
+"""Structural audit for jadhrdaily.com. Standard library only, no browser —
 so it runs identically on a laptop and in CI. Lifted from the audit that guards
 inheritingislam.com, with this site's own host list and its own list of things
 it is not yet allowed to claim.
@@ -22,7 +22,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SKIP_DIRS = {'.git', '_internal', 'tools', 'docs', '.github'}
 
 # Hosts this site is allowed to reference. Everything else is a privacy break.
-ALLOWED_HOSTS = {'jadhrapp.com', 'inheritingislam.com'}
+ALLOWED_HOSTS = {'jadhrdaily.com', 'inheritingislam.com'}
 
 # Phrases that would make the site claim something it has not earned. The last
 # three mirror the app's own licensing test: those translations are permission-

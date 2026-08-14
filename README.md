@@ -1,14 +1,30 @@
-# jadhrapp.com
+# jadhrdaily.com
 
 The pre-launch page for **Jadhr** — the daily Arabic root. One page, one stylesheet,
 one script, no third-party requests.
 
 **Deployed but deliberately not launched.** It is served from
-`https://inheriting-islam.github.io/jadhrapp.com/` and the custom domain is *not* attached —
-jadhrapp.com still points nowhere. The page is noindexed and `robots.txt` disallows everything
+`https://inheriting-islam.github.io/jadhrdaily.com/` and the custom domain is *not* attached —
+jadhrdaily.com still points nowhere. The page is noindexed and `robots.txt` disallows everything
 while it sits on the preview URL, because a crawled preview competes with the real domain later.
 
 The app itself lives in `~/jadhr`; this repo is only the page that takes the email address.
+
+## Why this domain and not jadhrapp.com
+
+There is another product called **Jadhr** at `jadhr.app` — an Arabic root explorer and academy,
+private beta, © Shahen Dalia, built on Lovable. Same descriptive Arabic word, adjacent subject,
+different product: theirs is a lookup tool and a course, this is a sixty-second daily game.
+
+The name stays. *Jadhr* means "root", it is directly descriptive for both of us, and neither of
+us can own it or be stopped from using it. What could not stay is the domain: **`jadhrapp.com`
+and `jadhr.app` are the same characters with the dot moved, and identical when spoken.** Every
+bit of that confusion leaks one way — away from here, toward them — and it is invisible when it
+happens. Jadhr's whole distribution is somebody saying the name out loud in a group chat, so the
+address has to survive being said out loud.
+
+`jadhrdaily.com` also earns its keep as positioning: "Jadhr Daily" is a phrase that can never be
+mistaken for a dictionary. **`jadhrapp.com` is still owned — redirect it, never print it.**
 
 ---
 
@@ -63,7 +79,7 @@ confirmation, because going quiet after a signup is a well-documented way to los
 honest but it converts badly. Two ways to finish it:
 
 1. **Same-origin, via `worker/`** — the recommended one. A Cloudflare Worker on
-   `jadhrapp.com/api/*` takes the POST and talks to the email provider itself, so the provider's
+   `jadhrdaily.com/api/*` takes the POST and talks to the email provider itself, so the provider's
    key stays server-side, no third-party script runs on the page, and no third party sees the
    visitor's IP. The site's "zero third-party requests" claim stays literally true.
 
@@ -104,7 +120,7 @@ both on the github.io subpath and at an apex domain. Keep them that way.
 
 Nothing below has been done yet. In order:
 
-1. **Cloudflare DNS** (jadhrapp.com's nameservers are `ian`/`sharon.ns.cloudflare.com`):
+1. **Cloudflare DNS** (jadhrdaily.com's nameservers are `ian`/`sharon.ns.cloudflare.com`):
 
    | Type | Name | Value | Proxy |
    |---|---|---|---|
@@ -114,12 +130,15 @@ Nothing below has been done yet. In order:
    Grey cloud, not orange. A proxied record blocks the Let's Encrypt challenge and GitHub never
    issues the certificate.
 
-2. **Restore the CNAME file** — `echo jadhrapp.com > CNAME` — or set the domain under
+2. **Restore the CNAME file** — `echo jadhrdaily.com > CNAME` — or set the domain under
    Settings → Pages. It was removed so the deploy could not claim the domain early.
 3. **Wait for the certificate**, then tick **Enforce HTTPS**.
 4. **Lift the parking**: delete the `noindex` meta in `index.html` and the `Disallow` in
    `robots.txt`. They are commented so neither gets left behind.
-5. **Rewrite the Jadhr row on `inheritingislam.com/apps/`** and point it here. Until that
+5. **Point jadhrapp.com here.** Both domains sit in the same Cloudflare account, so it is one
+   Redirect Rule: `jadhrapp.com/*` → `https://jadhrdaily.com/$1`, 301. It exists to catch type-ins
+   and to keep the near-miss domain out of anyone else's hands, not to be advertised.
+6. **Rewrite the Jadhr row on `inheritingislam.com/apps/`** and point it here. Until that
    happens the two sites contradict each other — see the section above.
 
 ## Checking it locally
