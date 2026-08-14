@@ -9,11 +9,15 @@ routes = [
   { pattern = "jadhrdaily.com/api/*", zone_name = "jadhrdaily.com" }
 ]
 
-# Rate-limit keys only: hashed IPs with a 60-second TTL, nothing durable.
-# Create with: npx wrangler kv namespace create RATE
+# LIST holds the subscribers ({email, at, source} per key, keyed sub:<email>).
+# RATE holds only hashed-IP rate-limit keys with a 60-second TTL.
+# Create each with: npx wrangler kv namespace create <BINDING>
+# [[kv_namespaces]]
+# binding = "LIST"
+# id = "<paste the id wrangler prints>"
 # [[kv_namespaces]]
 # binding = "RATE"
 # id = "<paste the id wrangler prints>"
 
-# The provider key is a secret, never a var:
-#   npx wrangler secret put ESP_KEY
+# The export credential is a secret, never a var:
+#   npx wrangler secret put EXPORT_KEY     # any long random string

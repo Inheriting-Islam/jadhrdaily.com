@@ -1,16 +1,24 @@
 /**
  * jadhrdaily.com/api/subscribe — the waitlist endpoint.
  *
- * The page claims it makes no third-party requests, and that claim should stay
- * literally true even at the one moment the browser does talk to a server. So
- * the form posts to this Worker on jadhrdaily.com's own origin, and the Worker —
- * not the visitor's browser — is what talks to the email provider. The API key
- * stays server-side, no third-party script runs on the page, and no third party
- * ever sees the visitor's IP.
+ * First-party capture, no email provider in the loop. The page claims it makes
+ * no third-party requests and that no third party ever sees a visitor; this
+ * Worker keeps both claims literally true — the address goes into Cloudflare
+ * KV on our own account and nowhere else. (The earlier draft posted to
+ * Buttondown's API, which it turns out requires their $29/mo tier. Capture and
+ * sending are now decoupled: store here for $0, send the Friday email through
+ * anything, chosen later, from an export.)
  *
  * Deploy:
- *   cd worker && npx wrangler secret put ESP_KEY && npx wrangler deploy
+ *   cd worker
+ *   npx wrangler kv namespace create LIST     # paste id into wrangler.toml
+ *   npx wrangler kv namespace create RATE     # paste id into wrangler.toml
+ *   npx wrangler secret put EXPORT_KEY        # any long random string
+ *   npx wrangler deploy
  * Then set data-endpoint="/api/subscribe" on both forms in index.html.
+ *
+ * Export the list (for the Friday email):
+ *   curl -H "Authorization: Bearer $EXPORT_KEY" https://jadhrdaily.com/api/subscribers
  *
  * Requires the domain to be proxied through Cloudflare (orange cloud), which is
  * only safe AFTER GitHub has issued the Pages certificate. See the README.
@@ -21,7 +29,29 @@ const VALID = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 export default {
   async fetch(request, env) {
-    if (request.method !== 'POST') {
+    const url = new URL(request.url);
+
+    /* ---- export, for the person sending the Friday email ---- */
+    if (request.method === 'GET' && url.pathname === '/api/subscribers') {
+      const auth = request.headers.get('Authorization') || '';
+      if (!env.EXPORT_KEY || auth !== `Bearer ${env.EXPORT_KEY}`) {
+        return json({ error: 'auth' }, 401);
+      }
+      const rows = [];
+      let cursor;
+      do {
+        const page = await env.LIST.list({ prefix: 'sub:', cursor });
+        for (const k of page.keys) {
+          const v = await env.LIST.get(k.name);
+          if (v) rows.push(JSON.parse(v));
+        }
+        cursor = page.list_complete ? undefined : page.cursor;
+      } while (cursor);
+      return json({ count: rows.length, subscribers: rows }, 200);
+    }
+
+    /* ---- capture ---- */
+    if (request.method !== 'POST' || url.pathname !== '/api/subscribe') {
       return json({ error: 'method' }, 405);
     }
 
@@ -49,26 +79,18 @@ export default {
       await env.RATE.put(key, '1', { expirationTtl: 60 });
     }
 
-    // Buttondown by default — swap this block for any provider's API. A 409
-    // means already subscribed, which the page treats as success, because from
-    // the visitor's side it is.
-    const res = await fetch('https://api.buttondown.email/v1/subscribers', {
-      method: 'POST',
-      headers: {
-        Authorization: `Token ${env.ESP_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email_address: email,
-        tags: ['jadhr-waitlist'],
-        referrer_url: 'https://jadhrdaily.com/',
-      }),
-    });
-
-    if (res.ok || res.status === 409) return json({ ok: true }, 200);
-
-    console.error('esp', res.status, await res.text().catch(() => ''));
-    return json({ error: 'upstream' }, 502);
+    // Idempotent: already subscribed is subscribed. Stored value is the email,
+    // when, and where from — nothing else, because nothing else is needed to
+    // send someone a root a week.
+    const key = 'sub:' + email;
+    if (!(await env.LIST.get(key))) {
+      await env.LIST.put(key, JSON.stringify({
+        email,
+        at: new Date().toISOString(),
+        source: String(body?.source || 'jadhrdaily.com').slice(0, 64),
+      }));
+    }
+    return json({ ok: true }, 200);
   },
 };
 

@@ -76,25 +76,24 @@ Both forms post JSON — `{ email, source }` — to whatever `data-endpoint` nam
 confirmation, because going quiet after a signup is a well-documented way to lose people.
 
 `data-endpoint` is **empty**, so today the handler still falls back to composing a mail. That is
-honest but it converts badly. Two ways to finish it:
+honest but it converts badly. To finish it: deploy `worker/` — **first-party capture into
+Cloudflare KV on our own account**. No email provider is in the capture loop at all (an earlier
+draft posted to Buttondown's API, but their API needs the $29/mo tier — and decoupling capture
+from sending is better anyway: the list is ours, exported with one authenticated GET, and the
+Friday email goes out through anything, or by hand while the list is small).
 
-1. **Same-origin, via `worker/`** — the recommended one. A Cloudflare Worker on
-   `jadhrdaily.com/api/*` takes the POST and talks to the email provider itself, so the provider's
-   key stays server-side, no third-party script runs on the page, and no third party sees the
-   visitor's IP. The site's "zero third-party requests" claim stays literally true.
+```sh
+cd worker
+npx wrangler kv namespace create LIST   # paste ids into wrangler.toml
+npx wrangler kv namespace create RATE
+npx wrangler secret put EXPORT_KEY      # any long random string
+npx wrangler deploy
+# export for the Friday email:
+curl -H "Authorization: Bearer $EXPORT_KEY" https://jadhrdaily.com/api/subscribers
+```
 
-   ```sh
-   cd worker && npx wrangler kv namespace create RATE   # paste the id into wrangler.toml
-   npx wrangler secret put ESP_KEY                       # Buttondown by default
-   npx wrangler deploy
-   ```
-   Then set `data-endpoint="/api/subscribe"` on both forms. **Requires the apex record to be
-   proxied (orange cloud), which is only safe after GitHub has issued the Pages certificate.**
-
-2. **Straight to the provider** — paste a keyless embed endpoint (e.g. Buttondown's
-   `/api/emails/embed-subscribe/<user>`) into `data-endpoint` and ship in a minute. It works, but
-   it is a cross-origin request on submit, so the privacy line on the page has to say so and
-   `ALLOWED_HOSTS` in `tools/check.py` needs the provider added.
+Then set `data-endpoint="/api/subscribe"` on both forms. **Requires the apex record to be
+proxied (orange cloud), which is only safe after GitHub has issued the Pages certificate.**
 
 ## Day one is playable
 
