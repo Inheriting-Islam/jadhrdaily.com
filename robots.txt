@@ -1,4 +1,4 @@
+# Parked on the GitHub Pages preview URL, not launched. Lift this the day
+# jadhrapp.com is pointed here — together with the noindex meta in index.html.
 User-agent: *
-Allow: /
-
-Sitemap: https://jadhrapp.com/sitemap.xml
+Disallow: /

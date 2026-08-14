@@ -3,8 +3,12 @@
 The pre-launch page for **Jadhr** — the daily Arabic root. One page, one stylesheet,
 one script, no third-party requests.
 
-Live at `https://jadhrapp.com` once the DNS below is pointed. The app itself lives in
-`~/jadhr`; this repo is only the page that takes the email address.
+**Deployed but deliberately not launched.** It is served from
+`https://inheriting-islam.github.io/jadhrapp.com/` and the custom domain is *not* attached —
+jadhrapp.com still points nowhere. The page is noindexed and `robots.txt` disallows everything
+while it sits on the preview URL, because a crawled preview competes with the real domain later.
+
+The app itself lives in `~/jadhr`; this repo is only the page that takes the email address.
 
 ---
 
@@ -55,22 +59,33 @@ does store one address and send one email.
 
 GitHub Pages, from `main`, via the workflow in `.github/workflows/deploy.yml` — the same setup
 as inheritingislam.com. It runs `tools/check.py` first and refuses to deploy a page that fails
-it, or a site over 4 MB.
+it, or a site over 4 MB. Pages is already configured with **Source: GitHub Actions**, so every
+push to `main` publishes to the preview URL.
 
-```sh
-git init && git add -A && git commit -m "The pre-launch page for Jadhr"
-gh repo create Inheriting-Islam/jadhrapp.com --public --source=. --push
-```
+Asset paths are **relative**, not root-absolute, precisely so the same commit renders correctly
+both on the github.io subpath and at an apex domain. Keep them that way.
 
-Then: **Settings → Pages → Source: GitHub Actions**, and at the registrar —
+## Going live — the whole checklist
 
-| Record | Host | Value |
-|---|---|---|
-| A | `@` | `185.199.108.153`, `.109.153`, `.110.153`, `.111.153` |
-| CNAME | `www` | `inheriting-islam.github.io.` |
+Nothing below has been done yet. In order:
 
-`CNAME` in this repo already holds `jadhrapp.com`. Tick **Enforce HTTPS** once the certificate
-is issued.
+1. **Cloudflare DNS** (jadhrapp.com's nameservers are `ian`/`sharon.ns.cloudflare.com`):
+
+   | Type | Name | Value | Proxy |
+   |---|---|---|---|
+   | A | `@` | `185.199.108.153`, `.109.153`, `.110.153`, `.111.153` | **DNS only** |
+   | CNAME | `www` | `inheriting-islam.github.io.` | **DNS only** |
+
+   Grey cloud, not orange. A proxied record blocks the Let's Encrypt challenge and GitHub never
+   issues the certificate.
+
+2. **Restore the CNAME file** — `echo jadhrapp.com > CNAME` — or set the domain under
+   Settings → Pages. It was removed so the deploy could not claim the domain early.
+3. **Wait for the certificate**, then tick **Enforce HTTPS**.
+4. **Lift the parking**: delete the `noindex` meta in `index.html` and the `Disallow` in
+   `robots.txt`. They are commented so neither gets left behind.
+5. **Rewrite the Jadhr row on `inheritingislam.com/apps/`** and point it here. Until that
+   happens the two sites contradict each other — see the section above.
 
 ## Checking it locally
 
