@@ -49,10 +49,10 @@ up, no marketing arithmetic:
 
 | On the page | Source |
 |---|---|
-| 45 roots authored · 170 word forms | `CORPUS_STATS.roots`, `.familyWords` |
-| 17% of the Qur'an's rooted words — 8,734 of 50,269 | `CORPUS_STATS.quranCoverage` |
-| 18 semantic fields | distinct `semanticTags` across the corpus |
-| 44-root rotation | 45 minus `k–t–b`, the tutorial root |
+| 105 roots authored · 366 word forms | `CORPUS_STATS.roots`, `.familyWords` |
+| 47% of the Qur'an's rooted words — 23,466 of 50,269 | `CORPUS_STATS.quranCoverage` |
+| 808 playable roots / 94% destination | corpus analysis, 2026-08-14 (roots with ≥3 surface forms) |
+| 104-root rotation | 105 minus `ktb` (tutorial) and any Atlas-only root |
 | The thirty roots of Ramadan, in order | the `RAMADAN` export, unedited |
 | ṣ–b–r, its four forms, and 70:5 | the `صبر` entry, including `radicalAlignment` |
 | Corpus + Pickthall credits | `QURAN_PROVENANCE` |
