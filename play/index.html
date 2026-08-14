@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#241631" />
+  <meta name="color-scheme" content="light" />
+  <title>Jadhr — Root by root</title>
+  <meta name="description" content="Find the three letters that stay. One Arabic root a day, and the family of words it grows." />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" type="image/png" href="./jadhr-logo-emblem.png" />
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+  <!-- iOS has no manifest support: these three give the installed app its name, full-screen
+       chrome, and a status bar that blends into the cream canvas. -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Jadhr" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div id="app" class="app-shell" aria-live="polite"></div>
+  <script type="module" src="./app.mjs"></script>
+  <script>
+    // Registered outside the module so a service-worker failure can never break the game.
+    //
+    // Never on a development origin. The worker serves the shell cache-first and a new build
+    // deliberately waits rather than swapping under a live page — correct in production, but on
+    // localhost it means every edit is invisible until every tab is closed. On dev origins we
+    // also tear down any worker and cache left from an earlier visit, so a stale build cannot
+    // survive the change.
+    if ("serviceWorker" in navigator) {
+      var dev = /^(localhost|127\.0\.0\.1|\[?::1\]?|0\.0\.0\.0|192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.)/
+        .test(location.hostname) || location.protocol === "file:";
+      if (dev) {
+        navigator.serviceWorker.getRegistrations()
+          .then(function (regs) { regs.forEach(function (r) { r.unregister(); }); })
+          .catch(function () {});
+        if (window.caches) {
+          caches.keys().then(function (keys) {
+            keys.forEach(function (k) { if (k.indexOf("jadhr-") === 0) caches.delete(k); });
+          }).catch(function () {});
+        }
+      } else {
+        addEventListener("load", function () {
+          navigator.serviceWorker.register("./sw.js", { scope: "./" }).catch(function () {});
+        });
+      }
+    }
+  </script>
+</body>
+</html>

@@ -505,3 +505,7 @@ a.link:hover{color:var(--violet);box-shadow:inset 0 -1px 0 var(--violet)}
   .reveal,.reveal.in{opacity:1;transform:none;transition:none}
   .form,.arc li{transition:none}
 }
+
+/* ------------------------------------------------------------- hero play  */
+.hero-play{margin-top:1.1em;font-size:.95rem}
+.hero-play .tiny{margin-left:.5em}

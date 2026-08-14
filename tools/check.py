@@ -19,7 +19,9 @@ Exits non-zero on any failure.
 import os, re, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SKIP_DIRS = {'.git', '_internal', 'tools', 'docs', '.github'}
+# play/ is the app itself, copied from ~/jadhr/app/source — it carries its own QA suites
+# (logic, UI-state, corpus playthrough, PWA) and is not a content page for this audit.
+SKIP_DIRS = {'.git', '_internal', 'tools', 'docs', '.github', 'play'}
 
 # Hosts this site is allowed to reference. Everything else is a privacy break.
 ALLOWED_HOSTS = {'jadhrdaily.com', 'inheritingislam.com'}
