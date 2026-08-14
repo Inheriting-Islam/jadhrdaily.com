@@ -48,12 +48,47 @@ licensing test makes.
 
 ## The waitlist
 
-There is no form backend. `assets/js/site.js` composes a complete message in the visitor's own
-mail client and says so plainly on the page — the house pattern from inheritingislam.com.
+**The page now promises a root a week, not one email at launch.** That is a deliberate change and
+it is a commitment: launch is roughly six months out, and every source on waitlists says a list
+that hears nothing for six months is cold by the time you need it. A weekly root keeps it warm,
+tests the content on real readers before it ships, and is a better thing to be subscribed to than
+a notification. **If you are not going to write it weekly, change the copy before launch** — the
+strings are "every Friday" in the hero and the whole `#waitlist` section.
 
-**To swap in a real list**, replace the one `submit` handler in `site.js` with a `fetch` to your
-endpoint. The markup does not change, and neither does the copy, as long as the endpoint really
-does store one address and send one email.
+Both forms post JSON — `{ email, source }` — to whatever `data-endpoint` names, and expect a 2xx
+(409 counts as success: already subscribed is subscribed). Then the form is replaced by a real
+confirmation, because going quiet after a signup is a well-documented way to lose people.
+
+`data-endpoint` is **empty**, so today the handler still falls back to composing a mail. That is
+honest but it converts badly. Two ways to finish it:
+
+1. **Same-origin, via `worker/`** — the recommended one. A Cloudflare Worker on
+   `jadhrapp.com/api/*` takes the POST and talks to the email provider itself, so the provider's
+   key stays server-side, no third-party script runs on the page, and no third party sees the
+   visitor's IP. The site's "zero third-party requests" claim stays literally true.
+
+   ```sh
+   cd worker && npx wrangler kv namespace create RATE   # paste the id into wrangler.toml
+   npx wrangler secret put ESP_KEY                       # Buttondown by default
+   npx wrangler deploy
+   ```
+   Then set `data-endpoint="/api/subscribe"` on both forms. **Requires the apex record to be
+   proxied (orange cloud), which is only safe after GitHub has issued the Pages certificate.**
+
+2. **Straight to the provider** — paste a keyless embed endpoint (e.g. Buttondown's
+   `/api/emails/embed-subscribe/<user>`) into `data-endpoint` and ship in a minute. It works, but
+   it is a cross-origin request on submit, so the privacy line on the page has to say so and
+   `ALLOWED_HOSTS` in `tools/check.py` needs the provider added.
+
+## Day one is playable
+
+The hero card is the real first move of the real game for one root — ص-ب-ر — with no account and
+nothing installed. The markup **contains the answer**: without JavaScript the card is a static
+x-ray of the root and its family, and script is what takes the answer away and asks for it back.
+
+After three wrong attempts it reveals the root anyway. That is not politeness, it is the section
+further down the page — *"Never a paywall on the Bloom"* — being demonstrated rather than
+claimed. Nothing about the puzzle is stored or sent.
 
 ## Deploying
 

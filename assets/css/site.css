@@ -193,14 +193,26 @@ a.link:hover{color:var(--violet);box-shadow:inset 0 -1px 0 var(--violet)}
     radial-gradient(50% 50% at 8% 32%,rgba(255,107,87,.13),transparent 70%),
     radial-gradient(45% 45% at 50% 88%,rgba(244,185,66,.12),transparent 70%);
 }
-.hero-in{display:grid;grid-template-columns:1.02fr .98fr;gap:clamp(32px,5vw,72px);align-items:center}
-@media (max-width:960px){.hero-in{grid-template-columns:1fr}}
+/* Two stacked blocks beside the card on desktop; on a phone the card slots
+   between them, so the puzzle is met before the email field is. */
+.hero-in{
+  display:grid;grid-template-columns:1.02fr .98fr;gap:clamp(28px,4vw,48px) clamp(32px,5vw,72px);
+  grid-template-areas:"lead art" "act art";align-content:center;align-items:center;
+}
+.hero-lead{grid-area:lead;align-self:end}
+.hero-act{grid-area:act;align-self:start}
+.hero-art{grid-area:art}
+@media (max-width:960px){
+  .hero-in{grid-template-columns:1fr;grid-template-areas:"lead" "art" "act"}
+  .hero-lead,.hero-act{align-self:auto}
+}
 
 /* Two sentences, two blocks: the break is a decision, not whatever the
    measure happens to produce at this width. */
 .hero h1{margin:0 0 .55em}
 .hero h1 span{display:block;text-wrap:balance}
 .hero .eyebrow .ar{font-size:1.15em;letter-spacing:0}
+.kicker{font-size:1.02rem;font-weight:700;color:var(--ink);margin:0 0 .5em;letter-spacing:-.012em}
 .hero-fine{margin-top:.9em;max-width:46ch}
 .hero-fine b{color:var(--ink-soft)}
 
@@ -235,6 +247,14 @@ a.link:hover{color:var(--violet);box-shadow:inset 0 -1px 0 var(--violet)}
 .signup-lg input:focus{border-color:var(--violet-lit);box-shadow:0 0 0 4px rgba(107,78,255,.28)}
 .signup-lg .formnote{margin-top:12px;color:var(--on-panel-soft)}
 .signup-lg .formnote.err{color:var(--coral-lit)}
+.signup-fine{margin-top:12px;text-align:center;color:var(--on-panel-soft);opacity:.75}
+
+/* The confirmation. Going quiet after a signup is a named way to lose people,
+   so the form is replaced by what happens next and when. */
+.signed{margin:0;font-size:.95rem;line-height:1.55;color:var(--ink-soft)}
+.signed b{display:block;font-size:1.15rem;color:var(--ink);margin-bottom:.35em;letter-spacing:-.015em}
+.signup-lg .signed{color:var(--on-panel-soft)}
+.signup-lg .signed b{color:var(--on-panel)}
 
 /* --------------------------------------------------------------- x-ray    */
 /* The hero's centrepiece: the same three radicals, held fixed while four
@@ -286,6 +306,72 @@ a.link:hover{color:var(--violet);box-shadow:inset 0 -1px 0 var(--violet)}
 .form .r3{color:var(--sun-lit)}
 .form.is-on{background:rgba(255,255,255,.11);border-color:var(--line-panel);transform:translateX(3px)}
 .xray-foot{text-align:center;margin:18px 0 0;color:var(--on-panel-soft);font-style:italic}
+.bloom-next{margin:16px 0 0;padding-top:16px;border-top:1px solid var(--line-panel);
+  font-size:.88rem;color:var(--on-panel-soft);text-align:center}
+.bloom-next a{color:#fff}
+.bloom-next a:hover{color:var(--sun-lit)}
+
+/* --------------------------------------------------------------- hunt     */
+/* Day one of the actual game. Same card, same colours: the slot a letter
+   lands in is the colour that radical will be for the rest of the product. */
+.hunt-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0 0 16px}
+.hunt-head .xray-cap{margin:0;text-align:left}
+.hunt-tries{font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--on-panel-soft);white-space:nowrap}
+
+.evidence{list-style:none;margin:0;padding:0;background:rgba(0,0,0,.22);
+  border:1px solid var(--line-panel);border-radius:var(--r-md);overflow:hidden}
+.evidence li{padding:11px 18px;display:grid;gap:1px}
+.evidence li + li{border-top:1px solid var(--line-panel)}
+.evidence b{font-size:1.12rem;font-weight:800;letter-spacing:.01em}
+.evidence span{font-size:.76rem;color:var(--on-panel-soft)}
+.hunt-hint{margin:14px 0 16px;text-align:center;color:var(--on-panel-soft)}
+
+.slots{display:flex;justify-content:center;gap:clamp(10px,1.6vw,16px);margin-bottom:22px}
+.slot{
+  width:clamp(62px,8.5vw,84px);aspect-ratio:1;border-radius:var(--r-md);cursor:pointer;
+  background:rgba(255,255,255,.94);border:1px solid transparent;position:relative;
+  font-family:var(--f-ar);font-size:clamp(1.9rem,3vw,2.5rem);line-height:1;color:#1B1024;
+  display:grid;place-items:center;transition:background-color .2s,transform .2s;
+}
+.slot::after{content:"";position:absolute;left:18%;right:18%;bottom:12px;height:3px;border-radius:2px}
+.slot.s1::after{background:var(--coral)}
+.slot.s2::after{background:var(--violet)}
+.slot.s3::after{background:var(--sun)}
+.slot:empty::before{content:"·";color:rgba(27,16,36,.35);font-size:.5em}
+.slot.filled{transform:translateY(-2px)}
+.slots.wrong{animation:nudge .4s}
+@keyframes nudge{25%{transform:translateX(-7px)}50%{transform:translateX(7px)}75%{transform:translateX(-3px)}}
+
+.pool-cap{font-size:.66rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--on-panel-soft);margin:0 0 9px}
+.pool{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:18px}
+.key{
+  aspect-ratio:1;border-radius:var(--r-sm);cursor:pointer;
+  background:rgba(255,255,255,.94);border:1px solid transparent;color:#1B1024;
+  display:grid;place-items:center;gap:0;position:relative;
+  transition:background-color .18s,transform .12s,opacity .18s;
+}
+.key .ar{font-size:clamp(1.15rem,2.2vw,1.5rem);line-height:1}
+.key i{position:absolute;bottom:4px;font-style:normal;font-size:.58rem;font-weight:700;
+  color:rgba(27,16,36,.55)}
+.key:hover{background:#fff;transform:translateY(-2px)}
+.key:active{transform:none}
+.key.used{opacity:.32;pointer-events:none}
+
+.hunt-actions{display:flex;align-items:center;gap:14px}
+.btn-clear{background:none;border:0;padding:.5em .2em;cursor:pointer;font:inherit;
+  font-weight:700;font-size:.9rem;color:var(--violet-lit);flex:none}
+.btn-clear:hover{color:#fff}
+.hunt-actions .btn{flex:1}
+.hunt-actions .btn:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+.hunt-say{margin:14px 0 0;min-height:1.3em;text-align:center;color:var(--on-panel-soft)}
+.hunt-say.bad{color:var(--coral-lit)}
+
+@media (prefers-reduced-motion:reduce){
+  .slots.wrong{animation:none}
+  .slot,.key{transition:none}
+}
 
 /* ---------------------------------------------------------------- steps   */
 .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(20px,2.6vw,34px)}

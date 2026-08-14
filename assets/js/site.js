@@ -1,8 +1,8 @@
 /* ============================================================================
    JADHR — jadhrapp.com
-   Three small things: a reveal-on-scroll pass, the hero's root x-ray, and a
-   mailto composer. No trackers, no third-party requests, no form server —
-   nothing on this page phones anywhere.
+   Reveal-on-scroll, day one of the game, and the waitlist form. No trackers
+   and no third-party requests; the only network call this page can make is the
+   one the visitor starts by submitting their own email address.
    ========================================================================== */
 (function () {
   'use strict';
@@ -14,7 +14,7 @@
      JavaScript off gets the whole page rather than a blank one. */
   if (!reduced && 'IntersectionObserver' in window) {
     var targets = document.querySelectorAll(
-      '.hero-copy, .hero-art, .shead, .step, .stat, .nevers li, .status-in > *, .wait-copy, .signup-lg'
+      '.hero-lead, .hero-act, .hero-art, .shead, .step, .stat, .nevers li, .status-in > *, .wait-copy, .signup-lg'
     );
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
@@ -37,86 +37,170 @@
     }, 4000);
   }
 
-  /* ---- the root x-ray -----------------------------------------------
-     Walks the word family so the three radicals stay put while everything
-     around them changes. Pauses when it is off screen or under the pointer:
-     an animation nobody is watching is just battery. */
-  var xray = document.getElementById('xray');
-  if (xray && !reduced) {
-    var forms = Array.prototype.slice.call(xray.querySelectorAll('.form'));
-    if (forms.length > 1) {
-      var at = 0, timer = null, held = false;
+  /* ---- day one ------------------------------------------------------
+     The real first move of the real game, for one root, with no account and
+     nothing to install. The markup already contains the answer — this takes
+     it away, asks for it back, and gives it up either way after three tries:
+     losing the puzzle must never cost you the root. That is a promise made
+     further down this page, so the page had better keep it. */
+  var hunt = document.getElementById('hunt');
+  var bloom = document.getElementById('bloom');
 
-      var show = function (i) {
-        at = (i + forms.length) % forms.length;
-        forms.forEach(function (f, n) { f.classList.toggle('is-on', n === at); });
-      };
-      var start = function () { if (!timer && !held) timer = setInterval(function () { show(at + 1); }, 2600); };
-      var stop = function () { clearInterval(timer); timer = null; };
+  if (hunt && bloom) {
+    var ANSWER = ['ص', 'ب', 'ر'];
+    var TRIES = 3;
 
-      forms.forEach(function (f, n) {
-        f.addEventListener('mouseenter', function () { held = true; stop(); show(n); });
-        f.addEventListener('mouseleave', function () { held = false; start(); });
+    var slots = [].slice.call(document.querySelectorAll('.slot'));
+    var keys = [].slice.call(document.querySelectorAll('.key'));
+    var slotBox = document.getElementById('slots');
+    var lock = document.getElementById('hunt-lock');
+    var clear = document.getElementById('hunt-clear');
+    var say = document.getElementById('hunt-say');
+    var triesEl = document.getElementById('hunt-tries');
+    var picked = [null, null, null];
+    var left = TRIES;
+    var ORDINAL = ['First', 'Second', 'Third'];
+
+    bloom.hidden = true;
+    hunt.hidden = false;
+
+    var paint = function () {
+      slots.forEach(function (s, i) {
+        s.textContent = picked[i] || '';
+        s.classList.toggle('filled', !!picked[i]);
+        s.setAttribute('aria-label', ORDINAL[i] + ' radical, ' + (picked[i] || 'empty'));
       });
+      keys.forEach(function (k) {
+        k.classList.toggle('used', picked.indexOf(k.dataset.letter) > -1);
+      });
+      lock.disabled = picked.indexOf(null) > -1;
+    };
 
-      if ('IntersectionObserver' in window) {
-        new IntersectionObserver(function (entries) {
-          entries[0].isIntersecting ? start() : stop();
-        }, { threshold: .25 }).observe(xray);
-      } else {
-        start();
+    var reveal = function (won) {
+      hunt.hidden = true;
+      bloom.hidden = false;
+      document.getElementById('bloom-cap').textContent = won ? 'You found it' : 'Here it is anyway';
+      document.getElementById('bloom-next').hidden = false;
+      if (!won) {
+        var foot = document.querySelector('.xray-foot');
+        if (foot) foot.textContent = 'Losing the puzzle never costs you the root.';
       }
-      document.addEventListener('visibilitychange', function () {
-        document.hidden ? stop() : start();
+      /* Nothing is stored and nothing is sent. The state of a puzzle played on
+         a landing page is not information worth keeping about a person. */
+    };
+
+    keys.forEach(function (k) {
+      k.addEventListener('click', function () {
+        var slot = picked.indexOf(null);
+        if (slot < 0) return;
+        picked[slot] = k.dataset.letter;
+        say.textContent = '';
+        say.classList.remove('bad');
+        paint();
       });
-    }
+    });
+
+    slots.forEach(function (s, i) {
+      s.addEventListener('click', function () {
+        if (!picked[i]) return;
+        picked[i] = null;
+        paint();
+      });
+    });
+
+    clear.addEventListener('click', function () {
+      picked = [null, null, null];
+      say.textContent = '';
+      say.classList.remove('bad');
+      paint();
+    });
+
+    lock.addEventListener('click', function () {
+      if (picked.indexOf(null) > -1) return;
+
+      if (picked.join('') === ANSWER.join('')) { reveal(true); return; }
+
+      left -= 1;
+      triesEl.textContent = left === 1 ? '1 attempt' : left + ' attempts';
+      if (left <= 0) { reveal(false); return; }
+
+      slotBox.classList.add('wrong');
+      setTimeout(function () { slotBox.classList.remove('wrong'); }, 420);
+      say.textContent = 'Not those three. Read the words again — what survives every change?';
+      say.classList.add('bad');
+      picked = [null, null, null];
+      paint();
+    });
+
+    paint();
   }
 
-  /* ---- mailto composer ----------------------------------------------
-     There is no form backend, and rather than fake a subscription we open a
-     complete message in the visitor's own mail app and say plainly what just
-     happened. Swapping in a real endpoint later means replacing this one
-     handler; the markup does not change. */
+  /* ---- the waitlist -------------------------------------------------
+     Posts to whatever `data-endpoint` names. Left empty it falls back to
+     composing the message in the visitor's own mail client, which works from
+     the first minute and is honest about being manual — but it converts
+     badly, so it is a stopgap, not the design. See the README. */
   var valid = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
-  document.querySelectorAll('form[data-to]').forEach(function (form) {
+  document.querySelectorAll('form.signup').forEach(function (form) {
     var note = form.querySelector('.formnote');
-    var to = form.getAttribute('data-to');
+    var button = form.querySelector('button[type=submit]');
+    var emailEl = form.querySelector('[name=email]');
+    var endpoint = (form.getAttribute('data-endpoint') || '').trim();
+
+    var complain = function (msg) {
+      note.textContent = msg;
+      note.classList.add('err');
+      if (emailEl) emailEl.focus();
+    };
+
+    var done = function () {
+      form.innerHTML =
+        '<p class="signed"><b>You are on the list.</b> The first root lands on Friday. ' +
+        'When the app opens you will get one note, and that is the last thing I will ask of you.</p>';
+    };
 
     form.addEventListener('submit', function (e) {
       e.preventDefault();
-
-      var emailEl = form.querySelector('[name=email]');
       var email = (emailEl && emailEl.value || '').trim();
-      var name = ((form.querySelector('[name=name]') || {}).value || '').trim();
 
       if (!valid.test(email)) {
-        if (note) { note.textContent = 'That email does not look right — check it and try again.'; note.classList.add('err'); }
-        if (emailEl) emailEl.focus();
+        complain('That email does not look right — check it and try again.');
         return;
       }
-      if (note) note.classList.remove('err');
+      note.classList.remove('err');
 
-      var body = [
-        'Assalamu alaikum,',
-        '',
-        'Please add me to the Jadhr waitlist. Write to me once, when it opens.',
-        '',
-        'Name:  ' + (name || '—'),
-        'Email: ' + email,
-        '',
-        '— sent from jadhrapp.com'
-      ].join('\r\n');
-
-      var href = 'mailto:' + to +
-        '?subject=' + encodeURIComponent(form.getAttribute('data-subject') || 'Jadhr waitlist') +
-        '&body=' + encodeURIComponent(body);
-
-      window.location.href = href;
-
-      if (note) {
+      /* No endpoint configured yet: compose the mail instead of pretending. */
+      if (!endpoint) {
+        var body = [
+          'Assalamu alaikum,', '',
+          'Please add me to the Jadhr list — a root a week, and a note when the app opens.',
+          '', 'Email: ' + email, '', '— sent from jadhrapp.com'
+        ].join('\r\n');
+        window.location.href = 'mailto:' + form.getAttribute('data-to') +
+          '?subject=' + encodeURIComponent(form.getAttribute('data-subject') || 'Jadhr') +
+          '&body=' + encodeURIComponent(body);
         note.textContent = 'Your mail app is opening with the message written — send it and you are on the list.';
+        return;
       }
+
+      button.disabled = true;
+      var label = button.textContent;
+      button.textContent = 'Adding you…';
+      note.textContent = '';
+
+      fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, source: 'jadhrapp.com' })
+      }).then(function (res) {
+        if (!res.ok && res.status !== 409) throw new Error(res.status);
+        done();
+      }).catch(function () {
+        button.disabled = false;
+        button.textContent = label;
+        complain('That did not go through. Try again, or write to hamza@inheritingislam.com.');
+      });
     });
   });
 })();

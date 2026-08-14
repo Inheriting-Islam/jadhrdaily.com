@@ -1,0 +1,19 @@
+name = "jadhr-subscribe"
+main = "subscribe.js"
+compatibility_date = "2026-08-14"
+
+# Same origin as the site, so the page makes no cross-host request.
+# Requires the jadhrapp.com record to be proxied (orange cloud) — do this only
+# after GitHub has issued the Pages certificate, or the challenge fails.
+routes = [
+  { pattern = "jadhrapp.com/api/*", zone_name = "jadhrapp.com" }
+]
+
+# Rate-limit keys only: hashed IPs with a 60-second TTL, nothing durable.
+# Create with: npx wrangler kv namespace create RATE
+# [[kv_namespaces]]
+# binding = "RATE"
+# id = "<paste the id wrangler prints>"
+
+# The provider key is a secret, never a var:
+#   npx wrangler secret put ESP_KEY

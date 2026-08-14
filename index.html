@@ -41,7 +41,7 @@
     </a>
     <div class="head-right">
       <span class="pub">an Inheriting Islam app</span>
-      <a class="btn btn-primary btn-sm" href="#waitlist">Get the launch note</a>
+      <a class="btn btn-primary btn-sm" href="#waitlist">Get a root a week</a>
     </div>
   </div>
 </header>
@@ -52,25 +52,28 @@
 <section class="hero">
   <div class="wrap hero-in">
 
-    <div class="hero-copy">
+    <div class="hero-lead">
       <p class="eyebrow">A daily Arabic root <span class="ar" lang="ar" dir="rtl">جذر</span></p>
       <h1><span>Three letters.</span> <span>A whole <em>family</em> of words.</span></h1>
-      <p class="lede">Arabic is not a pile of vocabulary to be memorised. Almost every word in it
-        grows from a root of three consonants. Jadhr shows you a family of words that all hide the
-        same three — you work out which — and then the root blooms into everything it built,
-        ending at the āyah where it lives.</p>
+      <p class="kicker">A one-minute daily puzzle, built on Arabic.</p>
+      <p class="lede">Almost every Arabic word grows from three consonants. Find them, and the root
+        blooms into the whole family it built — ending at the āyah where it lives.</p>
+    </div>
 
-      <form class="signup" id="signup-top" data-to="hamza@inheritingislam.com"
-            data-subject="Jadhr waitlist" novalidate>
+    <!-- On a phone this sits between the headline and the ask, so nobody is
+         asked for an email before they have played anything. -->
+    <div class="hero-act">
+      <form class="signup" id="signup-top" novalidate
+            data-endpoint="" data-to="hamza@inheritingislam.com" data-subject="Jadhr waitlist">
         <label class="vh" for="e-top">Your email</label>
         <input id="e-top" name="email" type="email" inputmode="email" autocomplete="email"
                placeholder="you@example.com" required>
-        <button class="btn btn-primary" type="submit">Tell me when it opens</button>
+        <button class="btn btn-primary" type="submit">Send me a root a week</button>
         <p class="formnote tiny" role="status"></p>
       </form>
 
-      <p class="tiny hero-fine">One email, written by a person, when there is something real to
-        open. <b>No drip sequence, no list sold to anyone.</b></p>
+      <p class="tiny hero-fine">One root in your inbox every Friday, starting this week — then a
+        note when the app opens, ahead of Ramadan. <b>Nothing else, and no list sold to anyone.</b></p>
 
       <ul class="facts">
         <li><b>~1 min</b><span>a day</span></li>
@@ -79,10 +82,51 @@
       </ul>
     </div>
 
-    <!-- The root x-ray: the product's core idea, working, on the page. -->
+    <!-- Day one, playable. The markup below IS the answer, so a visitor without
+         JavaScript reads the root and its family as a static card; script turns
+         the same card into the puzzle it came from. -->
     <div class="hero-art">
-      <figure class="xray" id="xray">
-        <figcaption class="xray-cap">The root</figcaption>
+      <div class="xray" id="xray">
+
+      <div class="hunt" id="hunt" hidden>
+        <p class="hunt-head">
+          <span class="xray-cap">Day one · find what repeats</span>
+          <span class="hunt-tries" id="hunt-tries">3 attempts</span>
+        </p>
+
+        <ol class="evidence" role="list">
+          <li><b>ṢABR</b><span>patience · steadfastness</span></li>
+          <li><b>ṢĀBIR</b><span>one who remains patient</span></li>
+          <li><b>ṢĀBIRĪN</b><span>those who remain patient</span></li>
+        </ol>
+        <p class="hunt-hint tiny">Three consonants run through all three words, in order.
+          Tap them out.</p>
+
+        <div class="slots" id="slots" dir="rtl">
+          <button class="slot s1" type="button" data-slot="0" aria-label="First radical, empty"></button>
+          <button class="slot s2" type="button" data-slot="1" aria-label="Second radical, empty"></button>
+          <button class="slot s3" type="button" data-slot="2" aria-label="Third radical, empty"></button>
+        </div>
+
+        <p class="pool-cap">Letter pool</p>
+        <div class="pool" id="pool">
+          <button class="key" type="button" data-letter="ص"><span class="ar" lang="ar">ص</span><i>ṣ</i></button>
+          <button class="key" type="button" data-letter="ب"><span class="ar" lang="ar">ب</span><i>b</i></button>
+          <button class="key" type="button" data-letter="ر"><span class="ar" lang="ar">ر</span><i>r</i></button>
+          <button class="key" type="button" data-letter="س"><span class="ar" lang="ar">س</span><i>s</i></button>
+          <button class="key" type="button" data-letter="ت"><span class="ar" lang="ar">ت</span><i>t</i></button>
+          <button class="key" type="button" data-letter="ل"><span class="ar" lang="ar">ل</span><i>l</i></button>
+        </div>
+
+        <div class="hunt-actions">
+          <button class="btn-clear" type="button" id="hunt-clear">Clear</button>
+          <button class="btn btn-primary btn-block" type="button" id="hunt-lock" disabled>Lock in root</button>
+        </div>
+        <p class="hunt-say tiny" id="hunt-say" role="status"></p>
+      </div>
+
+      <div class="bloom" id="bloom">
+        <p class="xray-cap" id="bloom-cap">The root</p>
 
         <div class="radicals" dir="rtl" aria-label="The root ṣ-b-r">
           <span class="rad r1"><span class="ar" lang="ar">ص</span><i>ṣ</i></span>
@@ -116,7 +160,11 @@
         </ol>
 
         <p class="xray-foot tiny">The letters stayed. Everything else moved.</p>
-      </figure>
+        <p class="bloom-next" hidden id="bloom-next">That was one root. There are forty-four more,
+          one a day — <a class="link" href="#waitlist">have the next one sent to you</a>.</p>
+      </div>
+
+      </div>
     </div>
 
   </div>
@@ -313,27 +361,29 @@
   <div class="wrap wait-in">
     <div class="wait-copy">
       <p class="eyebrow">Be first, honestly</p>
-      <h2>It opens with a single email.</h2>
-      <p class="lede">There is no launch sequence and no countdown. When the content has been
-        checked and the thing is worth your minute, you get one note with a link in it. That is the
-        whole plan.</p>
-      <p class="tiny">Your browser will open your own mail app with the message already written —
-        there is no form server here collecting addresses in the background. Send it and you are
-        on the list.</p>
+      <h2>A root a week, until the app is ready.</h2>
+      <p class="lede">The app is months from finished, and a list you hear nothing from for months
+        is a list that has forgotten you. So it starts now: <b>one root every Friday</b> — the
+        three letters, the family they build, the āyah they live in. Read in a minute, on the day
+        it arrives.</p>
+      <p class="lede">When the app opens, ahead of Ramadan, you get one more note with a link in
+        it. There is no launch sequence and no countdown, and unsubscribing takes one click.</p>
+      <p class="tiny">Your address is stored to send you those roots and nothing else. It is never
+        sold, never rented, and never handed to an advertiser — there is no advertiser.</p>
     </div>
 
-    <form class="signup signup-lg" id="signup-main" data-to="hamza@inheritingislam.com"
-          data-subject="Jadhr waitlist" novalidate>
-      <div class="field">
-        <label for="w-name">Your name <span class="opt">optional</span></label>
-        <input id="w-name" name="name" type="text" autocomplete="name">
-      </div>
+    <!-- One field. Every extra one costs signups, and a name is not needed to
+         send a root to an inbox. -->
+    <form class="signup signup-lg" id="signup-main" novalidate
+          data-endpoint="" data-to="hamza@inheritingislam.com" data-subject="Jadhr waitlist">
       <div class="field">
         <label for="w-email">Email</label>
-        <input id="w-email" name="email" type="email" inputmode="email" autocomplete="email" required>
+        <input id="w-email" name="email" type="email" inputmode="email" autocomplete="email"
+               placeholder="you@example.com" required>
       </div>
-      <button class="btn btn-primary btn-block" type="submit">Tell me when Jadhr opens</button>
+      <button class="btn btn-primary btn-block" type="submit">Send me a root a week</button>
       <p class="formnote tiny" role="status"></p>
+      <p class="signup-fine tiny">Free, one email a week, one click to stop.</p>
     </form>
   </div>
 </section>
