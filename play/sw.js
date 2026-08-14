@@ -6,7 +6,7 @@
 //
 // CACHE_VERSION must change whenever the shell changes, or installed players keep the old build.
 // build.mjs rewrites it from the content hash, so do not edit it by hand.
-const CACHE_VERSION = "jadhr-437907c3e2";
+const CACHE_VERSION = "jadhr-d7bc409e8a";
 
 const SHELL = [
   "./",

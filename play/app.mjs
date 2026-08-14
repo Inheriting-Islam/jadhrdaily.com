@@ -153,6 +153,33 @@ function dailyRootId() {
   return selectDailyRoot(DAILY_POOL, params.get("date") || new Date());
 }
 function dailyRoot() { return ROOTS[dailyRootId()]; }
+
+// Practice and Challenge reuse the entire Daily flow, so every play surface reads
+// activeRoot() rather than dailyRoot(). Screens that report on the DAY — the today
+// card, the atlas, the share sheet — deliberately keep asking for the daily root.
+function activeRootId() {
+  const s = state.session;
+  return s ? s.queue[s.index] : dailyRootId();
+}
+function activeRoot() { return ROOTS[activeRootId()] || dailyRoot(); }
+
+// Practice never serves today's root: meeting it here would spend the Daily before
+// you played it. Challenge draws from the same pool for the same reason.
+function sessionPool() {
+  const today = dailyRootId();
+  return DAILY_POOL.filter((id) => id !== today);
+}
+
+const CHALLENGE_LENGTH = 5;
+
+function newChallengeQueue() {
+  const pool = [...sessionPool()];
+  for (let i = pool.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return pool.slice(0, CHALLENGE_LENGTH);
+}
 function dailyNumber() { return puzzleNumber(params.get("date") || new Date()); }
 
 const defaultState = () => ({
@@ -181,6 +208,12 @@ const defaultState = () => ({
   echoComplete: false,
   echoMessage: "",
   atlasOpen: [],
+  // A session is a run OUTSIDE the Daily. While one is set, the play flow reads its
+  // root instead of today's and no Daily progress is written — practice cannot
+  // manufacture a streak, and challenge cannot spend today's root before you meet it.
+  session: null,
+  practiceLog: { played: 0, solved: 0 },
+  challengeBest: 0,
 });
 
 let state = loadState();
@@ -189,7 +222,7 @@ function loadState() {
   try {
     const saved = JSON.parse(localStorage.getItem("jadhr-prototype-state") || "null");
     if (!saved) return defaultState();
-    const next = { ...defaultState(), ...saved, selected: [], spotSelected: [], echoSelected: [], modal: null };
+    const next = { ...defaultState(), ...saved, selected: [], spotSelected: [], echoSelected: [], modal: null, session: null };
     // Resume at the furthest checkpoint, never earlier — a solved Hunt must not reopen (D1).
     if (next.onboardingDone) next.screen = next.dailyComplete ? "today" : next.dailyStarted ? (next.checkpoint || "hunt") : "today";
     return next;
@@ -399,7 +432,7 @@ const LATIN_TOKEN = {
 };
 
 function evidenceMarkup(roman) {
-  const root = dailyRoot();
+  const root = activeRoot();
   const selected = new Set(state.selected.map((x) => x.ar));
   // Longest tokens first so TH/KH/SH/DH/GH are not broken apart by their own second letter,
   // and mark with sentinels so later passes cannot match inside emitted markup.
@@ -429,22 +462,29 @@ function markedWord(word, radicals) {
 }
 
 function huntScreen() {
-  const root = dailyRoot();
+  const root = activeRoot();
   const attemptsLeft = 3 - state.guesses.length;
   const slots = state.selected.map((x) => x.ar);
-  const showLatin = state.supportMode === "guided";
+  const run = state.session;
+  const script = Boolean(run && run.script);
+  const showLatin = state.supportMode === "guided" && !script;
+  const eyebrow = !run ? "Hunt · Discovery"
+    : run.mode === "challenge" ? `Challenge · ${run.index + 1} of ${run.queue.length}`
+    : "Practice · no streak, no score";
   return `<main class="screen no-nav hunt-screen" data-screen="hunt">
-    ${topbar({ back: "today" })}
+    ${topbar({ back: run ? "end-session" : "today" })}
     <div class="challenge-progress" aria-label="Stage 1 of 4"><i class="on"></i><i></i><i></i><i></i></div>
     <section class="challenge-head">
-      <div class="eyebrow">Hunt · Discovery</div>
+      <div class="eyebrow">${eyebrow}</div>
       <h2>Find what repeats.</h2>
-      <p>The word changes. Three consonants keep their identity.</p>
+      <p>${script ? "No transliteration this time. The same three consonants are in all three words." : "The word changes. Three consonants keep their identity."}</p>
     </section>
     <section class="pattern-board" aria-label="Word family evidence">
-      <div class="pattern-board-top"><span>WORD FAMILY</span><span>${showLatin ? "Tap a letter to trace its echo" : "Find the shared consonants"}</span></div>
+      <div class="pattern-board-top"><span>WORD FAMILY</span><span>${script ? "Arabic only — find the skeleton" : showLatin ? "Tap a letter to trace its echo" : "Find the shared consonants"}</span></div>
       <div class="pattern-rows">
-        ${root.discoveryEvidence.map((w, i) => `<div class="pattern-row"><span class="pattern-index">0${i+1}</span><div><div class="roman">${evidenceMarkup(w.roman)}</div><div class="gloss">${w.gloss}</div></div><span class="pattern-pulse" aria-hidden="true"></span></div>`).join("")}
+        ${script
+          ? root.family.slice(0, 3).map((w, i) => `<div class="pattern-row"><span class="pattern-index">0${i+1}</span><div><div class="script-word" dir="rtl" lang="ar">${w.ar}</div><div class="gloss">${w.en}</div></div><span class="pattern-pulse" aria-hidden="true"></span></div>`).join("")
+          : root.discoveryEvidence.map((w, i) => `<div class="pattern-row"><span class="pattern-index">0${i+1}</span><div><div class="roman">${evidenceMarkup(w.roman)}</div><div class="gloss">${w.gloss}</div></div><span class="pattern-pulse" aria-hidden="true"></span></div>`).join("")}
       </div>
     </section>
     <section class="root-workbench" aria-label="Build the root">
@@ -494,7 +534,7 @@ function guessHistory() {
 }
 
 function bloomScreen() {
-  const root = dailyRoot();
+  const root = activeRoot();
   const count = root.family.length;
   return `<main class="screen no-nav bloom-screen" data-screen="bloom">
     ${topbar({ quiet: true })}
@@ -519,7 +559,7 @@ function bloomScreen() {
 }
 
 function quranScreen() {
-  const root = dailyRoot();
+  const root = activeRoot();
   const q = root.quran;
   const dotted = root.radicals.join(" · ");
   return `<main class="screen no-nav quran-screen" data-screen="quran">
@@ -560,7 +600,7 @@ function spotLetters(root) {
 }
 
 function spotScreen() {
-  const root = dailyRoot();
+  const root = activeRoot();
   const letters = spotLetters(root);
   const selected = new Set(state.spotSelected);
   const correctIds = new Set(letters.filter((x) => x.root).map((x) => x.id));
@@ -597,10 +637,10 @@ function completeScreen() {
     </section>
     <section class="earned-card">
       <div class="earned-top"><span>${dailyLabel().toUpperCase()}</span><span class="earned-status">MET</span></div>
-      <div class="earned-root" dir="rtl">${radicalSpans(dailyRoot().radicals)}</div>
-      <div class="earned-translit">${dailyRoot().translit}</div>
-      <h3>${dailyRoot().gloss}</h3>
-      <div class="earned-metrics"><div><strong>${dailyRoot().family.length}</strong><span>forms opened</span></div><div><strong>${state.spotComplete ? 1 : 0}</strong><span>Qur'anic form spotted</span></div></div>
+      <div class="earned-root" dir="rtl">${radicalSpans(activeRoot().radicals)}</div>
+      <div class="earned-translit">${activeRoot().translit}</div>
+      <h3>${activeRoot().gloss}</h3>
+      <div class="earned-metrics"><div><strong>${activeRoot().family.length}</strong><span>forms opened</span></div><div><strong>${state.spotComplete ? 1 : 0}</strong><span>Qur'anic form spotted</span></div></div>
     </section>
     <div class="actions stack completion-actions"><button class="btn primary" data-action="share">Share today's growth</button><button class="btn secondary" data-action="preview-echo">Preview tomorrow's Echo</button></div>
     ${nav("today")}
@@ -716,15 +756,23 @@ function atlasCluster(title, description, items) {
 }
 
 function exploreScreen() {
+  const pool = sessionPool().length;
+  const log = state.practiceLog || { played: 0, solved: 0 };
+  const best = state.challengeBest || 0;
   return `<main class="screen explore-screen" data-screen="explore">
     ${topbar()}
-    <section class="map-head"><div class="eyebrow">Explore</div><h1>Go further<br>when curiosity wins.</h1><p>No review debt. No energy meter. Jadhr recommends the next useful move, and you choose.</p></section>
+    <section class="map-head"><div class="eyebrow">Explore</div><h1>Go further<br>when curiosity wins.</h1><p>No review debt. No energy meter. The Daily is one root and then it ends — this is where you go if that was not enough.</p></section>
     <section class="next-move-card">
-      <div class="next-badge">Best next move</div><div class="next-root" dir="rtl">ك · ت · ب</div><h2>Make yesterday prove itself.</h2><p>Recognize the writing family again before we ask you to recall it cold.</p><button class="btn primary" data-action="preview-echo">Play a 20-second Echo</button>
+      <div class="next-badge">Practice</div>
+      <h2>Any root, as many as you like.</h2>
+      <p>${pool} roots to choose from, minus today's — meeting it here would spend the Daily before you played it. Practice keeps no streak and produces no share card${log.played ? `. You have practised ${log.played} root${log.played === 1 ? "" : "s"}, solving ${log.solved}` : ""}.</p>
+      <button class="btn primary" data-action="open-practice">Choose a root</button>
     </section>
-    <section class="discovery-preview">
-      <div class="discovery-orb" dir="rtl"><span>ر</span><span>ح</span><span>م</span></div>
-      <div><span class="eyebrow">Next discovery</span><h3>Mercy has a family.</h3><p>Preview r–ḥ–m and see where Jadhr can take you next.</p><button class="text-action strong" data-action="root-detail" data-root="rhm">Preview the family →</button></div>
+    <section class="next-move-card">
+      <div class="next-badge">Challenge</div>
+      <h2>Five roots. Arabic only.</h2>
+      <p>The evidence board drops its transliteration, so you read the family in script and find the skeleton yourself. One miss ends the run.${best ? ` Your best is ${best} of ${CHALLENGE_LENGTH}.` : ""}</p>
+      <button class="btn primary" data-action="open-challenge">Start a run</button>
     </section>
     ${nav("explore")}
   </main>`;
@@ -805,6 +853,9 @@ function render() {
     case "echo": html = echoScreen(); break;
     case "map": html = mapScreen(); break;
     case "explore": html = exploreScreen(); break;
+    case "practice": html = practiceScreen(); break;
+    case "challenge-intro": html = challengeIntroScreen(); break;
+    case "challenge-result": html = challengeResultScreen(); break;
     case "history": html = historyScreen(); break;
     default: html = todayScreen();
   }
@@ -824,9 +875,30 @@ function handleAction(action, el) {
   if (action === "onboarding-intro") return setState({ screen: "onboarding-intro" }, false);
   if (action === "start-first-daily") return setState({ ...resetTransientForHunt(), onboardingDone: true, dailyStarted: true, checkpoint: "hunt", screen: "hunt" });
   if (action === "start-hunt") return state.dailyStarted && !state.dailyComplete ? setState({ screen: state.checkpoint || "hunt", selected: [], invalidMessage: "" }, false) : setState({ ...resetTransientForHunt(), dailyStarted: true, checkpoint: "hunt", screen: "hunt" });
-  if (action === "today" || action === "nav-today") return setState({ screen: "today", modal: null }, false);
+  if (action === "today" || action === "nav-today") return setState({ ...(state.session ? resetRun() : {}), screen: "today", modal: null, session: null }, Boolean(state.session));
   if (action === "nav-map") return setState({ screen: "map", modal: null }, false);
-  if (action === "nav-explore") return setState({ screen: "explore", modal: null }, false);
+  if (action === "nav-explore") return setState({ screen: "explore", modal: null, session: null }, false);
+  if (action === "open-practice") return setState({ ...resetRun(), session: null, screen: "practice", modal: null });
+  if (action === "start-practice") {
+    const id = el.dataset.root;
+    if (!ROOTS[id]) return;
+    return setState({ ...resetRun(), session: { mode: "practice", queue: [id], index: 0, solved: 0, script: false }, screen: "hunt" });
+  }
+  if (action === "open-challenge") return setState({ ...resetRun(), session: null, screen: "challenge-intro", modal: null });
+  if (action === "start-challenge") {
+    const queue = newChallengeQueue();
+    if (!queue.length) return;
+    return setState({ ...resetRun(), session: { mode: "challenge", queue, index: 0, solved: 0, script: true }, screen: "hunt" });
+  }
+  if (action === "end-session") {
+    const run = state.session;
+    const patch = { ...resetRun(), session: null, screen: run?.mode === "challenge" ? "explore" : "practice" };
+    if (run?.mode === "practice") {
+      patch.practiceLog = { played: (state.practiceLog?.played || 0) + 1, solved: (state.practiceLog?.solved || 0) + (state.solved ? 1 : 0) };
+    }
+    if (run?.mode === "challenge" && !run.done) patch.challengeBest = Math.max(state.challengeBest || 0, run.solved || 0);
+    return setState(patch);
+  }
   if (action === "nav-history") return setState({ screen: "history", modal: null }, false);
   if (action === "open-settings") return setState({ modal: "settings" }, false);
   if (action === "close-modal") return setState({ modal: null }, false);
@@ -852,8 +924,8 @@ function handleAction(action, el) {
     return setState({ selected: state.selected.filter((_, i) => i !== idx), invalidMessage: "" }, false);
   }
   if (action === "hint") {
-    const first = dailyRoot().radicals[0];
-    const lat = dailyRoot().pool.find((k) => k.ar === first)?.lat || "";
+    const first = activeRoot().radicals[0];
+    const lat = activeRoot().pool.find((k) => k.ar === first)?.lat || "";
     return setState({ hintUsed: true, supportMessage: `Support: the first radical is ${first}${lat ? ` (${lat})` : ""}. Taking support does not reduce your score or shame the result.` }, false);
   }
   if (action === "submit-root") return submitRoot();
@@ -871,6 +943,13 @@ function handleAction(action, el) {
   }
   if (action === "check-spot") return checkSpot();
   if (action === "finish-daily") {
+    // A practice run finishes into the practice screen and records nothing but its own
+    // tally: no streak, no atlas entry, no share. The Daily stays the only thing the
+    // record is a record OF.
+    if (state.session) {
+      return setState({ ...resetRun(), session: null, screen: "practice",
+        practiceLog: { played: (state.practiceLog?.played || 0) + 1, solved: (state.practiceLog?.solved || 0) + 1 } });
+    }
     return setState({ dailyComplete: true, dailyStarted: true, checkpoint: null, screen: "complete", map: { ...state.map, [dailyRootId()]: state.map[dailyRootId()] || "met" } });
   }
   if (action === "preview-echo") return setState({ screen: "echo", echoSelected: [], echoComplete: false, echoMessage: "" }, false);
@@ -891,7 +970,7 @@ function submitRoot() {
   if (state.selected.length !== 3) return;
   if (state.solved || state.guesses.length >= 3) return; // Hunt is over — no further submissions (D1)
   const radicals = state.selected.map((x) => x.ar);
-  const resolution = resolveRootSubmission({ target: dailyRoot().radicals, selected: radicals, acceptedKeys: ACCEPTED, priorGuesses: state.guesses });
+  const resolution = resolveRootSubmission({ target: activeRoot().radicals, selected: radicals, acceptedKeys: ACCEPTED, priorGuesses: state.guesses });
 
   if (resolution.status === "invalid") {
     // Keep the selection — a typo in one radical should not cost re-entering all three (D5).
@@ -903,6 +982,11 @@ function submitRoot() {
     state = { ...state, guesses: resolution.guesses, solved: true, selected: [], invalidMessage: "", checkpoint: "bloom" };
     persist();
     render();
+    if (state.session?.mode === "challenge") {
+      const run = { ...state.session, solved: state.session.solved + 1 };
+      window.setTimeout(() => advanceChallenge(run), 340);
+      return;
+    }
     window.setTimeout(() => setState({ screen: "bloom" }), 340);
     return;
   }
@@ -911,17 +995,109 @@ function submitRoot() {
     state = { ...state, guesses: resolution.guesses, solved: false, rootRevealed: true, selected: [], invalidMessage: "", checkpoint: "bloom" };
     persist();
     render();
+    if (state.session?.mode === "challenge") {
+      window.setTimeout(() => setState({ session: { ...state.session, over: true }, screen: "bloom" }), 460);
+      return;
+    }
     window.setTimeout(() => setState({ screen: "bloom" }), 460);
     return;
   }
   return setState({ guesses: resolution.guesses, selected: [], invalidMessage: "", supportMessage: resolution.guesses.length === 1 ? "One radical clue is available whenever you want it." : state.supportMessage });
 }
 
+function resetRun() {
+  return { ...resetTransientForHunt(), guesses: [], selected: [], solved: false, rootRevealed: false,
+    invalidMessage: "", supportMessage: "", hintUsed: false, spotSelected: [], spotComplete: false };
+}
+
+function advanceChallenge(run) {
+  if (run.index + 1 >= run.queue.length) {
+    return setState({
+      session: { ...run, index: run.index, done: true },
+      challengeBest: Math.max(state.challengeBest || 0, run.solved),
+      screen: "challenge-result",
+    });
+  }
+  return setState({ ...resetRun(), session: { ...run, index: run.index + 1 }, screen: "hunt" });
+}
+
+function practiceScreen() {
+  const log = state.practiceLog || { played: 0, solved: 0 };
+  const byTheme = new Map();
+  for (const id of sessionPool()) {
+    const root = ROOTS[id];
+    const theme = root.theme || "Other";
+    if (!byTheme.has(theme)) byTheme.set(theme, []);
+    byTheme.get(theme).push(root);
+  }
+  const groups = [...byTheme.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+  return `<main class="screen practice-screen" data-screen="practice">
+    ${topbar({ back: "nav-explore" })}
+    <section class="map-head">
+      <div class="eyebrow">Practice</div>
+      <h1>Pick a root.<br>Play it properly.</h1>
+      <p>The full four stages — hunt, bloom, the āyah, the x-ray — for any root but today's. Nothing here touches your streak, your atlas or your share card.${log.played ? ` <strong>${log.solved}/${log.played}</strong> solved so far.` : ""}</p>
+    </section>
+    ${groups.map(([theme, roots]) => `<section class="practice-group">
+      <div class="practice-theme">${theme}</div>
+      <div class="practice-grid">
+        ${roots.map((r) => `<button class="practice-chip" data-action="start-practice" data-root="${r.id}">
+          <span class="chip-root" dir="rtl" lang="ar">${r.radicals.join("")}</span>
+          <span class="chip-translit">${r.translit}</span>
+        </button>`).join("")}
+      </div>
+    </section>`).join("")}
+    ${nav("explore")}
+  </main>`;
+}
+
+function challengeIntroScreen() {
+  const best = state.challengeBest || 0;
+  return `<main class="screen no-nav challenge-intro-screen" data-screen="challenge-intro">
+    ${topbar({ back: "nav-explore" })}
+    <section class="challenge-head">
+      <div class="eyebrow">Challenge</div>
+      <h2>Five roots.<br>Arabic only.</h2>
+      <p>Every other screen in Jadhr shows you the family in transliteration, where the three consonants are legible in Latin capitals. Here they are not. You read the words in script and find the skeleton that survives all three.</p>
+    </section>
+    <section class="next-move-card">
+      <h3>The rules</h3>
+      <p>Three attempts per root, as always. Solve it and the next one arrives — no bloom, no verse, just the next hunt. <strong>One miss ends the run.</strong> Losing still shows you the root, because losing never costs you the root.</p>
+      <p>Nothing here touches the Daily.${best ? ` Your best run is <strong>${best} of ${CHALLENGE_LENGTH}</strong>.` : ""}</p>
+    </section>
+    <div class="hunt-actions"><button class="btn ghost small" data-action="nav-explore">Back</button><button class="btn primary" data-action="start-challenge">Start the run</button></div>
+  </main>`;
+}
+
+function challengeResultScreen() {
+  const run = state.session || { solved: 0, queue: [] };
+  const perfect = run.solved >= CHALLENGE_LENGTH;
+  return `<main class="screen no-nav challenge-result-screen" data-screen="challenge-result">
+    ${topbar({ quiet: true })}
+    <section class="completion-hero">
+      <div class="eyebrow">Challenge complete</div>
+      <h1>${perfect ? "All five.<br>In script." : `${run.solved} of ${CHALLENGE_LENGTH}.`}</h1>
+      <p>${perfect ? "You read five families in Arabic and found every skeleton. That is the skill the Daily is quietly building." : "Every root you met is still yours — the ones you missed are in Practice whenever you want them."}</p>
+    </section>
+    <section class="earned-card">
+      <div class="earned-top"><span>THIS RUN</span><span class="earned-status">${run.solved}/${CHALLENGE_LENGTH}</span></div>
+      <div class="challenge-run">
+        ${run.queue.map((id, i) => {
+          const r = ROOTS[id];
+          const done = i < run.solved;
+          return `<div class="run-row ${done ? "run-hit" : "run-miss"}"><span class="run-root" dir="rtl" lang="ar">${r.radicals.join("")}</span><span class="run-translit">${r.translit}</span><span class="run-gloss">${r.gloss}</span></div>`;
+        }).join("")}
+      </div>
+    </section>
+    <div class="hunt-actions"><button class="btn ghost small" data-action="nav-explore">Done</button><button class="btn primary" data-action="start-challenge">Run again</button></div>
+  </main>`;
+}
+
 function checkSpot() {
-  const correct = spotLetters(dailyRoot()).filter((l) => l.root).map((l) => l.id);
+  const correct = spotLetters(activeRoot()).filter((l) => l.root).map((l) => l.id);
   const ok = isCorrectSpotSelection(state.spotSelected, correct);
   if (ok) return setState({ spotComplete: true }, false);
-  return setState({ spotSelected: [], supportMessage: `Look past the article and long-vowel letters. Find ${dailyRoot().translit.replaceAll("–", " · ")}.` }, false);
+  return setState({ spotSelected: [], supportMessage: `Look past the article and long-vowel letters. Find ${activeRoot().translit.replaceAll("–", " · ")}.` }, false);
 }
 
 // Echo is pinned to the onboarding root (k–t–b) until the scheduler picks the due item (M3).
@@ -1018,7 +1194,7 @@ async function runBrowserQA() {
   click('[data-action="spot"]');
   assert("Spot flags the simplified spelling", document.body.textContent.includes("Spelling simplified"));
   // Tile ids are positions in the exercise form, so read them off the day's root.
-  for (const tile of spotLetters(dailyRoot()).filter((l) => l.root)) {
+  for (const tile of spotLetters(activeRoot()).filter((l) => l.root)) {
     click(`[data-action="spot-letter"][data-id="${tile.id}"]`);
   }
   click('[data-action="check-spot"]');

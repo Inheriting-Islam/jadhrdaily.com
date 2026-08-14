@@ -350,7 +350,6 @@ mark.root-letter.root-3 { color:#ffd777; text-shadow:0 0 14px rgba(244,185,66,.2
 
 /* Qur'an: intentionally quieter */
 .quran-screen { background:#fbf6ed; }
-.quran-screen::before { content:""; position:absolute; inset:0; pointer-events:none; background:radial-gradient(circle at 90% -10%,rgba(178,127,47,.06),transparent 28%); }
 .quran-head { margin-top:34px; position:relative; }
 .quran-head .eyebrow { color:#8a6223; }
 .quran-head h2 { margin-top:10px; }
@@ -397,8 +396,7 @@ mark.root-letter.root-3 { color:#ffd777; text-shadow:0 0 14px rgba(244,185,66,.2
 .completion-hero h1 { margin-top:10px; }
 .completion-hero p { max-width:31ch; margin:0 auto 22px; }
 .earned-card { border-radius:31px; padding:18px; background:
-  radial-gradient(circle at 88% 10%,rgba(107,78,255,.38),transparent 31%),
-  linear-gradient(145deg,#281732,#1f1228); color:#fff; box-shadow:0 24px 58px rgba(38,20,47,.23); }
+  var(--plum); color:#fff; box-shadow:0 24px 58px rgba(38,20,47,.23); }
 .earned-top { display:flex; justify-content:space-between; gap:10px; color:rgba(255,255,255,.45); font-size:8.5px; font-weight:900; letter-spacing:.13em; }
 .earned-status { color:#94e7d3; }
 .earned-root { display:flex; direction:rtl; justify-content:center; gap:9px; margin:20px 0 11px; }
@@ -424,7 +422,7 @@ mark.root-letter.root-3 { color:#ffd777; text-shadow:0 0 14px rgba(244,185,66,.2
 /* Echo */
 .echo-head { margin-top:30px; }
 .echo-word-card { margin:22px 0 18px; border-radius:29px; padding:22px; text-align:center; background:
-  radial-gradient(circle at 80% 8%,rgba(107,78,255,.30),transparent 32%),linear-gradient(145deg,#2b1835,#211229); color:#fff; box-shadow:0 22px 54px rgba(39,20,49,.20); }
+  var(--plum); color:#fff; box-shadow:0 22px 54px rgba(39,20,49,.20); }
 .echo-memory-label { color:rgba(255,255,255,.38); font-size:8px; font-weight:900; letter-spacing:.14em; }
 .echo-arabic { margin:13px 0 5px; font-family:"Geeza Pro","Noto Naskh Arabic",serif; font-size:48px; line-height:1.3; }
 .echo-word-card > strong { display:block; font-size:15px; }
@@ -470,15 +468,16 @@ mark.root-letter.root-3 { color:#ffd777; text-shadow:0 0 14px rgba(244,185,66,.2
 .map-note p { margin:4px 0 0; font-size:10.5px; line-height:1.4; }
 
 /* Explore */
-.next-move-card { margin-top:22px; border-radius:31px; padding:20px; color:#fff; background:
-  radial-gradient(circle at 85% 10%,rgba(107,78,255,.42),transparent 31%),linear-gradient(145deg,#2a1834,#211229); box-shadow:0 23px 58px rgba(39,20,49,.22); }
-.next-badge { display:inline-block; padding:5px 8px; border-radius:999px; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.10); color:#d9cdff; font-size:8px; font-weight:900; letter-spacing:.12em; }
+.next-move-card { margin-top:22px; border-radius:31px; padding:20px; color:var(--ink);
+  background:var(--paper); border:1px solid var(--line-strong); box-shadow:var(--shadow-card); }
+.next-badge { display:inline-block; padding:5px 8px; border-radius:999px; background:var(--violet-soft); border:1px solid rgba(107,78,255,.18); color:var(--violet-deep); font-size:8px; font-weight:900; letter-spacing:.12em; }
 .next-root { margin:20px 0 9px; font-family:"Geeza Pro","Noto Naskh Arabic",serif; font-size:34px; }
-.next-move-card h2 { color:#fff; font-size:26px; }
-.next-move-card p { color:rgba(255,255,255,.61); font-size:12.5px; }
-.next-move-card .btn.primary { background:linear-gradient(135deg,#fff8ed,#ffe5a6); color:var(--plum); box-shadow:0 11px 24px rgba(0,0,0,.17); }
-.discovery-preview { margin-top:13px; padding:15px; border-radius:24px; border:1px solid var(--line); background:rgba(255,255,255,.58); display:grid; grid-template-columns:92px 1fr; gap:14px; align-items:center; }
-.discovery-orb { width:88px; height:88px; border-radius:50%; display:flex; align-items:center; justify-content:center; gap:5px; background:radial-gradient(circle at 30% 25%,#fff,#f0e9f8); border:1px solid rgba(107,78,255,.11); box-shadow:0 10px 23px rgba(51,31,61,.07); font-family:"Geeza Pro","Noto Naskh Arabic",serif; }
+.next-move-card h2 { color:var(--ink); font-size:26px; }
+.next-move-card p { color:var(--muted); font-size:12.5px; }
+.next-move-card h3 { color:var(--ink); }
+.next-move-card .btn.primary { background:var(--violet); color:#fff; box-shadow:0 11px 24px rgba(83,55,210,.24); }
+.discovery-preview { margin-top:13px; padding:15px; border-radius:24px; border:1px solid var(--line); background:var(--paper-2); display:grid; grid-template-columns:92px 1fr; gap:14px; align-items:center; }
+.discovery-orb { width:88px; height:88px; border-radius:50%; display:flex; align-items:center; justify-content:center; gap:5px; background:var(--violet-soft); border:1px solid rgba(107,78,255,.11); box-shadow:0 10px 23px rgba(51,31,61,.07); font-family:"Geeza Pro","Noto Naskh Arabic",serif; }
 .discovery-orb span { font-size:19px; color:#5d4869; }
 .discovery-preview h3 { margin:5px 0; }
 .discovery-preview p { margin:0 0 6px; font-size:10.5px; line-height:1.38; }
@@ -530,7 +529,7 @@ mark.root-letter.root-3 { color:#ffd777; text-shadow:0 0 14px rgba(244,185,66,.2
 .share-brand strong { font-size:18px; letter-spacing:-.035em; }
 .share-brand span { margin-top:2px; color:var(--muted); font-size:9px; }
 .share-artifact { margin:16px 0 17px; padding:18px; border-radius:26px; color:#fff; background:
-  radial-gradient(circle at 88% 10%,rgba(107,78,255,.38),transparent 31%),linear-gradient(145deg,#281732,#211329); box-shadow:0 19px 45px rgba(38,20,47,.21); }
+  var(--plum); box-shadow:0 19px 45px rgba(38,20,47,.21); }
 .share-artifact-head { display:flex; justify-content:space-between; gap:10px; color:rgba(255,255,255,.51); font-size:8px; font-weight:900; letter-spacing:.11em; }
 .share-radicals { display:flex; justify-content:center; gap:8px; margin:20px 0 14px; }
 .share-radicals i { width:48px; height:54px; border-radius:16px; background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.09); position:relative; }
@@ -774,8 +773,6 @@ mark.root-letter.root-3 { color:#ffd777; text-shadow:0 0 14px rgba(244,185,66,.2
   html { background: #f4ece2; }
   body {
     background:
-      radial-gradient(50% 40% at 12% 0%, rgba(107,78,255,.07), transparent 60%),
-      radial-gradient(45% 40% at 95% 100%, rgba(255,107,87,.06), transparent 60%),
       #f7f1e9;
   }
 
@@ -892,3 +889,35 @@ mark.root-letter.root-3 { color:#ffd777; text-shadow:0 0 14px rgba(244,185,66,.2
   .root-atlas { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .atlas-cluster.is-open { grid-column: span 2; }
 }
+
+/* ── Practice & Challenge ─────────────────────────────────────────────────
+   Runs that sit outside the Daily. They reuse every play surface, so there is
+   almost nothing new to style — only the picker, the script evidence row, and
+   the run summary. */
+
+/* The challenge evidence board: Arabic, no transliteration underneath. Sized up,
+   because reading an unvocalised skeleton is the whole task. */
+.script-word { font-family:"Geeza Pro","Noto Naskh Arabic",serif; font-size:31px; line-height:1.75; color:var(--ink); letter-spacing:0; }
+
+.practice-group { margin-top:22px; }
+.practice-theme { font-size:9.5px; font-weight:900; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin-bottom:9px; }
+.practice-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(86px,1fr)); gap:8px; }
+.practice-chip {
+  border:1px solid var(--line); background:var(--paper); border-radius:17px; padding:11px 6px 9px;
+  display:grid; gap:2px; place-items:center; cursor:pointer; transition:.14s ease; min-width:0;
+}
+.practice-chip:hover { transform:translateY(-2px); border-color:var(--violet); box-shadow:var(--shadow-soft); }
+.practice-chip:active { transform:none; }
+.chip-root { font-family:"Geeza Pro","Noto Naskh Arabic",serif; font-size:23px; line-height:1.5; color:var(--ink); }
+.chip-translit { font-size:9px; font-weight:850; letter-spacing:.05em; color:var(--muted); }
+
+.challenge-run { display:grid; gap:7px; margin-top:4px; }
+.run-row {
+  display:grid; grid-template-columns:auto auto 1fr; align-items:center; gap:11px;
+  padding:10px 13px; border-radius:15px; border:1px solid var(--line); background:var(--paper-2);
+}
+.run-row.run-hit { border-color:rgba(37,173,145,.30); background:var(--mint-soft); }
+.run-row.run-miss { opacity:.55; }
+.run-root { font-family:"Geeza Pro","Noto Naskh Arabic",serif; font-size:21px; line-height:1.4; }
+.run-translit { font-size:11px; font-weight:900; letter-spacing:.05em; color:var(--muted); }
+.run-gloss { font-size:11px; color:var(--muted); text-align:right; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
