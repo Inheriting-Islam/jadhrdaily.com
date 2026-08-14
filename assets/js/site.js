@@ -45,8 +45,9 @@
      further down this page, so the page had better keep it. */
   var hunt = document.getElementById('hunt');
   var bloom = document.getElementById('bloom');
+  var xray = document.getElementById('xray');
 
-  if (hunt && bloom) {
+  if (hunt && bloom && xray) {
     var ANSWER = ['ص', 'ب', 'ر'];
     var TRIES = 3;
 
@@ -63,6 +64,9 @@
 
     bloom.hidden = true;
     hunt.hidden = false;
+    /* Light while hunting; the flip to plum IS the reveal. Matches the app,
+       where the Bloom is the only dark surface left. */
+    xray.classList.add('is-hunt');
 
     var paint = function () {
       slots.forEach(function (s, i) {
@@ -79,6 +83,7 @@
     var reveal = function (won) {
       hunt.hidden = true;
       bloom.hidden = false;
+      xray.classList.remove('is-hunt'); // going dark is the arrival
       document.getElementById('bloom-cap').textContent = won ? 'You found it' : 'Here it is anyway';
       document.getElementById('bloom-next').hidden = false;
       if (!won) {
