@@ -1,0 +1,63 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Jadhr — share card source</title>
+<!--
+  The 1200×630 share card, built as a page so it can be re-rendered rather than
+  re-drawn. This is the surface Jadhr spreads on — a group chat — so it uses the
+  product's own identity: plum ground, three radicals, nothing illustrative.
+
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless \
+      --window-size=1200,630 --force-device-scale-factor=1 \
+      --screenshot=assets/img/og-card.png "file://$PWD/tools/og.html"
+-->
+<style>
+  *{box-sizing:border-box;margin:0}
+  body{
+    width:1200px;height:630px;overflow:hidden;position:relative;
+    background:#241631;color:#F6F1FA;
+    font-family:"Avenir Next",Avenir,ui-sans-serif,-apple-system,sans-serif;
+    display:flex;flex-direction:column;justify-content:center;gap:38px;padding:0 84px;
+  }
+  body::before{
+    content:"";position:absolute;inset:0;
+    background:
+      radial-gradient(46% 60% at 88% 6%,rgba(107,78,255,.55),transparent 66%),
+      radial-gradient(38% 52% at 4% 96%,rgba(255,107,87,.26),transparent 70%);
+  }
+  .in{position:relative;display:flex;flex-direction:column;gap:34px}
+  .mark{display:flex;align-items:center;gap:14px}
+  .mark svg{width:40px;height:34px}
+  .mark b{font-size:34px;font-weight:800;letter-spacing:-.035em}
+  .mark span{font-size:16px;color:#BCAECA;letter-spacing:.02em;margin-left:6px}
+  h1{font-size:74px;font-weight:800;letter-spacing:-.035em;line-height:1.02;max-width:16ch}
+  h1 em{font-style:normal;color:#A896FF}
+  .row{display:flex;align-items:center;gap:26px}
+  .tiles{display:flex;gap:12px}
+  .t{width:84px;height:84px;border-radius:22px;display:grid;place-items:center;
+     font-family:"SF Arabic","Geeza Pro","Noto Naskh Arabic",serif;font-size:44px;color:#1B1024;
+     box-shadow:0 14px 30px rgba(0,0,0,.3)}
+  .t1{background:#F4B942}.t2{background:#6B4EFF;color:#fff}.t3{background:#FF6B57}
+  .foot{font-size:22px;color:#BCAECA}
+  .foot b{color:#F6F1FA;font-weight:700}
+</style>
+<div class="in">
+  <div class="mark">
+    <svg viewBox="0 0 48 40" aria-hidden="true">
+      <rect x="2" y="18" width="10" height="18" rx="5" fill="#FF6B57"/>
+      <rect x="17" y="4" width="11" height="32" rx="5" fill="#6B4EFF"/>
+      <rect x="33" y="12" width="10" height="24" rx="5" fill="#F4B942"/>
+    </svg>
+    <b>Jadhr</b><span>an Inheriting Islam app</span>
+  </div>
+
+  <h1>Three letters. A whole <em>family</em> of words.</h1>
+
+  <div class="row">
+    <div class="tiles">
+      <div class="t t1" lang="ar">ر</div>
+      <div class="t t2" lang="ar">ب</div>
+      <div class="t t3" lang="ar">ص</div>
+    </div>
+    <p class="foot">The daily Arabic root.<br><b>jadhrapp.com</b></p>
+  </div>
+</div>

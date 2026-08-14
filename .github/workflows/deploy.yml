@@ -1,0 +1,54 @@
+name: Check and deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Structural audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Links, landmarks, alt text, lang, third parties, honest claims
+        run: python3 tools/check.py
+      - name: Page weight
+        run: |
+          echo "Largest files:"
+          find . -path ./.git -prune -o -type f -print | xargs du -k 2>/dev/null \
+            | sort -rn | head -12
+          total=$(du -sk --exclude=.git . | cut -f1)
+          echo "Total: ${total} KB"
+          if [ "$total" -gt 4096 ]; then
+            echo "::error::Site exceeds 4 MB — page weight is a design constraint here."
+            exit 1
+          fi
+
+  deploy:
+    name: Deploy to Pages
+    needs: check
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - id: deployment
+        uses: actions/deploy-pages@v4
